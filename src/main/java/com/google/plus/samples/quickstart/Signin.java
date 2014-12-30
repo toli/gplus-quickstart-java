@@ -19,7 +19,6 @@ package com.google.plus.samples.quickstart;
 import com.google.api.client.auth.oauth2.TokenResponseException;
 import com.google.api.client.googleapis.auth.oauth2.*;
 import com.google.api.client.http.GenericUrl;
-import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson.JacksonFactory;
@@ -36,6 +35,7 @@ import org.apache.log4j.PropertyConfigurator;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.servlet.ServletHandler;
 import org.mortbay.jetty.servlet.SessionHandler;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -106,8 +106,12 @@ public class Signin {
      * @param args Command-line arguments.
      * @throws Exception from Jetty if the component fails to start
      */
+    @SuppressWarnings("unused")
     public static void main(String[] args) throws Exception {
         PropertyConfigurator.configure("log4j.properties");
+
+        new ClassPathXmlApplicationContext("ignore-list.xml");
+
         Server server = new Server(4567);
         ServletHandler servletHandler = new ServletHandler();
         SessionHandler sessionHandler = new SessionHandler();
@@ -144,6 +148,7 @@ public class Signin {
                 // Fancy way to read index.html into memory, and set the client ID
                 // and state values in the HTML before serving it.
                 response.getWriter().print(new Scanner(new File("index.html"), "UTF-8")
+                //response.getWriter().print(new Scanner(new File("deduper.html"), "UTF-8")
                         .useDelimiter("\\A").next()
                         .replaceAll("[{]{2}\\s*CLIENT_ID\\s*[}]{2}", CLIENT_ID)
                         .replaceAll("[{]{2}\\s*STATE\\s*[}]{2}", state)
@@ -259,7 +264,7 @@ public class Signin {
                         .setFromTokenResponse(JSON_FACTORY.fromString(
                                 tokenData, GoogleTokenResponse.class));
                 // Execute HTTP GET request to revoke current token.
-                HttpResponse revokeResponse = TRANSPORT.createRequestFactory()
+                TRANSPORT.createRequestFactory()
                         .buildGetRequest(new GenericUrl(
                                 String.format(
                                         "https://accounts.google.com/o/oauth2/revoke?token=%s",
@@ -321,6 +326,9 @@ public class Signin {
          *
          * As it reads the incoming contacts, it tries to see if a contact contains an email that's already been seen and merges
          * the incoming contact to an existing one in that case
+         * If the contact has same (lowercase) name as existing contact, merges all emails to existing contact
+         * (as a result, it's possible that we may have all lowercase full name if that's found first, can obviously
+         * clean up and Camel Case names before sending out invites)
          * Cleans up the "orphaned no-name emails" if it encounters an email w/out an associated name
          * that's already been seen in some other known contact
          *
@@ -347,6 +355,7 @@ public class Signin {
             Map<String, GoogleContact> emailToPerson = new HashMap<String, GoogleContact>();
             Map<String, GoogleContact> fullNameToPerson = new HashMap<String, GoogleContact>();
             Set<String> noNameSetOfEmails = new HashSet<String>();
+            String ownerName = "[contacts owner]";
 
             while (true) {
                 ContactFeed resultFeed = contactsService.getFeed(query, ContactFeed.class);
@@ -356,7 +365,8 @@ public class Signin {
                     break;
                 }
                 // Print the results
-                System.out.println("read the feed: " + resultFeed.getTitle().getPlainText());
+                ownerName = resultFeed.getTitle().getPlainText();
+                System.out.println("reading the feed of: " + ownerName);
                 System.out.println();
                 for (ContactEntry entry : resultFeed.getEntries()) {
                     GoogleContact contact = new GoogleContact(entry);
@@ -365,12 +375,12 @@ public class Signin {
                     if (!(contact.hadIgnoredEmails() && contact.getEmails().size() == 0)) {
                         // handle name -> contact mapping
                         if ((contact.getFullName() != null)) {
-                            if (fullNameToPerson.containsKey(contact.getFullName())) {
+                            if (fullNameToPerson.containsKey(contact.getFullName().toLowerCase())) {
                                 // merge existing to incoming
-                                fullNameToPerson.get(contact.getFullName()).merge(contact);
+                                fullNameToPerson.get(contact.getFullName().toLowerCase()).merge(contact);
                             } else {
                                 // add new one
-                                fullNameToPerson.put(contact.getFullName(), contact);
+                                fullNameToPerson.put(contact.getFullName().toLowerCase(), contact);
 
                             }
                             // if we found someone with a name, remove any of those emails, that may have been w/out a name
@@ -401,11 +411,12 @@ public class Signin {
             System.out.println("emails with no names: " + noNameSetOfEmails.size());
             System.out.println("just names w/out emails: " + justNamesArr.length);
             System.out.println("Contacts with full name and emails: " + fullNameToPerson.size());
+            System.out.println("Total number merged: " + GoogleContact.getNumMerged());
 
             response.getWriter().print(GSON.toJson("Read total of " + totalContactsRead + " contacts\n"));
             File outfile = new File("deduped-output.html");
             response.getWriter().print(GSON.toJson("Toli sucks at Web output. Please open the generated file in a browser instead: " + outfile.getAbsolutePath()));
-            constructOutputHtml(outfile, totalContactsRead, fullNameToPerson, emailToPerson, noNameSetOfEmails, justNamesArr);
+            constructOutputHtml(outfile, ownerName, totalContactsRead, fullNameToPerson, emailToPerson, noNameSetOfEmails, justNamesArr);
             response.setStatus(HttpServletResponse.SC_OK);
         }
 
@@ -413,19 +424,20 @@ public class Signin {
          * constructs the HTML output for deduped results
          * I such at front-end, so this is a nice throwback to 1995
          */
-        private static void constructOutputHtml(File outfile, int totalContactsRead,
+        private static void constructOutputHtml(File outfile, String contactsOwner, int totalContactsRead,
                                                 Map<String, GoogleContact> fullNameToPerson,
                                                 Map<String, GoogleContact> emailToPerson,
                                                 Set<String> noNameSetOfEmails, String[] justNamesArr) {
 
             try {
-                FileUtils.write(outfile, "<html><body>", true);
-                FileUtils.write(outfile, "<em>Total # of contacts read: " + totalContactsRead + "</em>\n", true);
+                FileUtils.write(outfile, ""); // erase the file if it's already present
+                FileUtils.write(outfile, "<html>\n<body>\n", true);
+                FileUtils.write(outfile, "<em>[" + contactsOwner + "]: total # of contacts read: " + totalContactsRead + "</em><br>\n", true);
                 FileUtils.write(outfile, "<em>total unique emails: " + emailToPerson.size() + "</em><br/>\n", true);
                 FileUtils.write(outfile, "<em>Emails with no names: " + noNameSetOfEmails.size() + "</em><br>\n", true);
                 FileUtils.write(outfile, "<em>Just names with no emails: " + justNamesArr.length + "</em><br>\n", true);
 
-                FileUtils.write(outfile, "<h3>All Deduped Contacts</h3><br/>\n", true);
+                FileUtils.write(outfile, "<h3>All Deduped Contacts: " + fullNameToPerson.size() + "</h3><br/>\n", true);
                 FileUtils.write(outfile, "<table border='1'>\n", true);
                 FileUtils.write(outfile, "<th width='15%'>Name</th><th width='15%'>Primary email</th><th>All Emails</th>\n", true);
                 String[] allNames = fullNameToPerson.keySet().toArray(new String[fullNameToPerson.size()]);
@@ -441,14 +453,18 @@ public class Signin {
                 FileUtils.write(outfile, "<p/>", true);
                 FileUtils.write(outfile, "<em>total unique emails: " + emailToPerson.size() + "</em><br>\n", true);
                 FileUtils.write(outfile, "<h3>Emails with no names: " + noNameSetOfEmails.size() + "</h3><br>\n", true);
-                for (String justEmail : noNameSetOfEmails) {
+                String[] sortedNoNameEmails = noNameSetOfEmails.toArray(new String[noNameSetOfEmails.size()]);
+                Arrays.sort(sortedNoNameEmails);
+                for (String justEmail : sortedNoNameEmails) {
                     FileUtils.write(outfile, justEmail + "<br/>\n", true);
                 }
                 FileUtils.write(outfile, "<p/>\n", true);
+                Arrays.sort(justNamesArr);
                 FileUtils.write(outfile, "<h3>Just names with no emails: " + justNamesArr.length + "</h3><br>\n", true);
                 for (String name : justNamesArr) {
                     FileUtils.write(outfile, name + "<br/>\n", true);
                 }
+                FileUtils.write(outfile, "<em>Totally number contacts merged: " + GoogleContact.getNumMerged() + "<br/>\n", true);
                 FileUtils.write(outfile, "</body></html>\n", true);
 
             } catch (IOException ex) {
@@ -462,7 +478,7 @@ public class Signin {
             GoogleContact[] allContacts = fullNameToPerson.values().toArray(new GoogleContact[fullNameToPerson.size()]);
             for (GoogleContact contact : allContacts) {
                 if (contact.getEmails().size() == 0) {
-                    fullNameToPerson.remove(contact.getFullName());
+                    fullNameToPerson.remove(contact.getFullName().toLowerCase());
                     justNames.add(contact.getFullName());
                 }
             }

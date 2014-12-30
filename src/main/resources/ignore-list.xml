@@ -1,0 +1,31 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+
+  <bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+    <property name="staticMethod" value="com.google.plus.samples.quickstart.GoogleContact.setIgnoredPatterns"/>
+    <property name="arguments">
+      <list>
+        <value>.*auto_reply.*</value>
+        <value>.*@sale.craigslist.org</value>
+        <value>sale-.*@craigslist.org</value>
+        <value>hous-.*@craigslist.org</value>
+        <value>.*@reply.facebook.com</value>
+        <value>.*@reply.linkedin.com</value>
+        <value>.*@reply.airbnb.com</value>
+        <value>.*@guest.airbnb.com</value>
+        <value>.*@serv.craigslist.org</value>
+        <value>.*@groups.facebook.com</value>
+        <value>.*@plus.google.com</value>
+        <value>.*@host.airbnb.com</value>
+        <value>.*@reply.craigslist.org</value>
+        <value>unsubscribe@.*</value>
+        <value>serv-.*@craigslist.org</value>
+        <value>.*@docs.google.com</value>
+        <value>noreply.*@quip.com</value>
+        <value>support-.*@.*zendesk.com</value>
+      </list>
+    </property>
+  </bean>
+</beans>

@@ -2,6 +2,7 @@ package com.google.plus.samples.quickstart;
 
 import com.google.gdata.data.contacts.ContactEntry;
 import com.google.gdata.data.extensions.Email;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -20,11 +21,13 @@ public class GoogleContact {
     private String primaryEmail;
     private Set<String> emails = new HashSet<String>();
     private boolean hadIgnoredEmails = false;
+    private static Pattern ignoreEmailPattern;
+    private static int numMerged =0;
 
-    Pattern ignoreEmailPattern = Pattern.compile(".*auto_reply.*|.*@sale.craigslist.org|sale-.*@craigslist.org|hous-.*@craigslist.org|"+
-            ".*@reply.facebook.com|.*@reply.linkedin.com|.*@reply.airbnb.com|.*@guest.airbnb.com|.*@serv.craigslist.org|.*@groups.facebook.com|"+
-            ".*@plus.google.com|.*@host.airbnb.com|.*@reply.craigslist.org|unsubscribe@.*|serv-.*@craigslist.org|"+
-            ".*@docs.google.com|noreply.*@quip.com");
+    @SuppressWarnings("unused") // Spring setter
+    public static void setIgnoredPatterns(List<String> inIgnoredPatterns) {
+        ignoreEmailPattern = Pattern.compile(StringUtils.join(inIgnoredPatterns.toArray(new String[inIgnoredPatterns.size()]), "|"));
+    }
 
     public GoogleContact(ContactEntry entry) {
         List<Email> emailAddresses = entry.getEmailAddresses();
@@ -50,6 +53,7 @@ public class GoogleContact {
         return emails;
     }
 
+    public static int getNumMerged() { return numMerged;}
 
     public String getPrimaryEmail() {
         return primaryEmail;
@@ -60,15 +64,21 @@ public class GoogleContact {
     }
 
     public void merge(GoogleContact inContact) {
+        boolean merged = false;
         if((inContact.getFullName() != null) && (fullName == null)) {
             fullName = inContact.getFullName();
+            merged = true;
         }
         if(inContact.getEmails() != null) {
             emails.addAll(inContact.getEmails());
             if(primaryEmail  == null) {
                 primaryEmail = inContact.getPrimaryEmail();
+                merged = true;
             }
-        } 
+        }
+        if(merged) {
+            numMerged++;
+        }
     }
 
     @Override

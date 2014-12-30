@@ -58,9 +58,8 @@ Click a button to sign in to Google
 
     <div id="profile"></div>
 
-    <h2>User's contacts that are visible to this app</h2>
-    <div id="visiblePeople"></div>
-
+    Please see the logs - it takes a few minutes to connect to Google, and then logs will be scrolling.<br>
+    Afterwards, please see the <a href="deduped-output.html">generated deduped contacts</a> list
   </div>
 </body>
 <script type="text/javascript">
@@ -78,9 +77,11 @@ var helper = (function() {
     onSignInCallback: function(authResult) {
       $('#authResult').html('Auth Result:<br/>');
       for (var field in authResult) {
+/*
         if(field != undefined) {
           $('#authResult').append(' ' + field + ': ' + authResult[field] + '<br/>');
         }
+*/
       }
       if (authResult['access_token']) {
         // The user is signed in
@@ -102,22 +103,6 @@ var helper = (function() {
      * Retrieves and renders the authenticated user's Google+ profile.
      */
     renderProfile: function() {
-      var request = gapi.client.plus.people.get( {'userId' : 'me'} );
-      request.execute( function(profile) {
-          $('#profile').empty();
-          if (profile.error) {
-            $('#profile').append(profile.error);
-            return;
-          }
-          $('#profile').append(
-              $('<p><img src=\"' + profile.image.url + '\"></p>'));
-          $('#profile').append(
-              $('<p>Hello ' + profile.displayName + '!<br />'));
-          if (profile.cover && profile.coverPhoto) {
-            $('#profile').append(
-                $('<p><img src=\"' + profile.cover.coverPhoto.url + '\"></p>'));
-          }
-        });
       $('#authOps').show('slow');
       $('#gConnect').hide();
     },
@@ -132,11 +117,10 @@ var helper = (function() {
         async: false,
         success: function(result) {
           console.log('revoke response: ' + result);
-          $('#authOps').hide();
-          $('#profile').empty();
-          $('#visiblePeople').empty();
-          $('#authResult').empty();
           $('#gConnect').show();
+          console.log("should be showing login button")
+          $('#authOps').hide();
+          $('#authResult').empty();
         },
         error: function(e) {
           console.log(e);
