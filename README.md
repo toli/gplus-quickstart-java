@@ -31,5 +31,6 @@ example: Eugenia.Volen@ey.com [eugenia.volen@ey.com], [eugenia.volen@ey.com]
 should probalby default to Eugenia Volen if it falls into A.B@company.com
 - guessing "additonal" intitials correctly, ie Bob Smith vs Bob A. Smith
 This one is tricky, since you may have people with completely correctly different middle initials, ie Bob A. Smith, Bob B. Smith, and so on
+- using a phone number as a unique "key", similarly to Full Name
 
 You can futher improve by sucking in a history of emails and calculating # of emails that were sent/received by particular addresses and possibly elevate potential conflicts to "human review" (by end-user themelves maybe?) if there are a lot of emails sent/received for a particular tricky name. Otherwise, for num=1 just auto-merge to make things easier
