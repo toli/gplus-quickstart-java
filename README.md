@@ -28,7 +28,7 @@ Examples:
 1320: Mark Chamberlain - Sun UK [mark.chamberlain@sun.com], [mark.chamberlain@sun.com]
 - extracting person's name from email in case we don't have "real email". 
 example: Eugenia.Volen@ey.com [eugenia.volen@ey.com], [eugenia.volen@ey.com]
-should probalby default to Eugnia Volen if it falls into A.B@company.com
+should probalby default to Eugenia Volen if it falls into A.B@company.com
 - guessing "additonal" intitials correctly, ie Bob Smith vs Bob A. Smith
 This one is tricky, since you may have people with completely correctly different middle initials, ie Bob A. Smith, Bob B. Smith, and so on
 
