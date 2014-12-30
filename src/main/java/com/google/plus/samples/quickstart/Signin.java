@@ -411,7 +411,7 @@ public class Signin {
             System.out.println("emails with no names: " + noNameSetOfEmails.size());
             System.out.println("just names w/out emails: " + justNamesArr.length);
             System.out.println("Contacts with full name and emails: " + fullNameToPerson.size());
-            System.out.println("Total number merged: " + GoogleContact.getNumMerged());
+            System.out.println("Merged contacts: " + Arrays.toString(GoogleContact.getMerged()));
 
             response.getWriter().print(GSON.toJson("Read total of " + totalContactsRead + " contacts\n"));
             File outfile = new File("deduped-output.html");
@@ -464,7 +464,7 @@ public class Signin {
                 for (String name : justNamesArr) {
                     FileUtils.write(outfile, name + "<br/>\n", true);
                 }
-                FileUtils.write(outfile, "<em>Totally number contacts merged: " + GoogleContact.getNumMerged() + "<br/>\n", true);
+                FileUtils.write(outfile, "<em>Merged contacts: " + Arrays.toString(GoogleContact.getMerged()) + "<br/>\n", true);
                 FileUtils.write(outfile, "</body></html>\n", true);
 
             } catch (IOException ex) {

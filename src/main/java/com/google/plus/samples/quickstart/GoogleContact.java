@@ -22,7 +22,7 @@ public class GoogleContact {
     private Set<String> emails = new HashSet<String>();
     private boolean hadIgnoredEmails = false;
     private static Pattern ignoreEmailPattern;
-    private static int numMerged =0;
+    private static Set<String> mergedNames = new HashSet<String>();
 
     @SuppressWarnings("unused") // Spring setter
     public static void setIgnoredPatterns(List<String> inIgnoredPatterns) {
@@ -53,7 +53,11 @@ public class GoogleContact {
         return emails;
     }
 
-    public static int getNumMerged() { return numMerged;}
+    public static String[] getMerged() {
+        String[] result = mergedNames.toArray(new String[mergedNames.size()]);
+        Arrays.sort(result);
+        return result;
+    }
 
     public String getPrimaryEmail() {
         return primaryEmail;
@@ -77,7 +81,7 @@ public class GoogleContact {
             }
         }
         if(merged) {
-            numMerged++;
+            mergedNames.add(inContact.getFullName());
         }
     }
 
