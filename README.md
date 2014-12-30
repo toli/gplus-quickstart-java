@@ -17,7 +17,7 @@ You will see some stats for read/unique contacts/emails, and will see a table of
 In general, the following deduplications were in effect:
 - full names were merged regardless of case (and the first contact "seen" would win future capitalization)
 - emails that would show up under different contacts would lead to a "merge"
-- all ignored emialsl are filtered, and if that left a contact w/out emails it'd be dropped.
+- all ignored emails are filtered, and if that left a contact w/out emails it'd be dropped.
 
 Future work and cases that were not take care of:
 UI - i have failed horribly. I'd need to learn about UIs/redirection/sessions management/etc. You currently may need to reload the page a few times for the login to go through, and then wait ~10secs for data to start coming back. 
