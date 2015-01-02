@@ -35,5 +35,5 @@ This one is tricky, since you may have people with completely correctly differen
 and with international numbers/country prefixes, ie +1-415-555-1234
 
 You can further improve by sucking in a history of emails and calculating # of emails that were sent/received by particular addresses
-and possibly elevate potential conflicts to "human review" (by end-user themelves maybe?) if there are a lot of emails sent/received
+and possibly elevate potential conflicts to "human review" (by end-user themselves maybe?) if there are a lot of emails sent/received
 for a particular tricky name. Otherwise, for num=1 just auto-merge to make things easier
