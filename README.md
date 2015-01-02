@@ -33,6 +33,7 @@ should probalby default to Eugenia Volen if it falls into A.B@company.com
 This one is tricky, since you may have people with completely correctly different middle initials, ie Bob A. Smith, Bob B. Smith, and so on
 - using a phone number as a unique "key", similarly to Full Name. You just have to be very careful with formats (ie 415-555-1234 or smushed 4155551234)
 and with international numbers/country prefixes, ie +1-415-555-1234
+- storing the login info in the DB so you don't have to authenticate every single time
 
 You can further improve by sucking in a history of emails and calculating # of emails that were sent/received by particular addresses
 and possibly elevate potential conflicts to "human review" (by end-user themselves maybe?) if there are a lot of emails sent/received
