@@ -22,7 +22,7 @@ In general, the following deduplications were in effect:
 Future work and cases that were not take care of:
 UI - i have failed horribly. I'd need to learn about UIs/redirection/sessions management/etc. You currently may need to reload the page a few times for the login to go through, and then wait ~10secs for data to start coming back. 
 I horribly suck at UI, and after sinking a (scarily) large number of hours into making it work i gave up and wrote out to a file instead.
-- Deduplication of names with "suffixes" - sucha s "Bob Smith/Bob Smit - (bla bla)" would be smart. 
+- Deduplication of names with "suffixes" - sucha s "Bob Smith/Bob Smith - (bla bla)" would be smart.
 Examples:
 1319: Mark Chamberlain [bigkop@googlemail.com], [bigkop@googlemail.com, mark@createnetworks.co.uk]
 1320: Mark Chamberlain - Sun UK [mark.chamberlain@sun.com], [mark.chamberlain@sun.com]
@@ -31,6 +31,9 @@ example: Eugenia.Volen@ey.com [eugenia.volen@ey.com], [eugenia.volen@ey.com]
 should probalby default to Eugenia Volen if it falls into A.B@company.com
 - guessing "additonal" intitials correctly, ie Bob Smith vs Bob A. Smith
 This one is tricky, since you may have people with completely correctly different middle initials, ie Bob A. Smith, Bob B. Smith, and so on
-- using a phone number as a unique "key", similarly to Full Name
+- using a phone number as a unique "key", similarly to Full Name. You just have to be very careful with formats (ie 415-555-1234 or smushed 4155551234)
+and with international numbers/country prefixes, ie +1-415-555-1234
 
-You can futher improve by sucking in a history of emails and calculating # of emails that were sent/received by particular addresses and possibly elevate potential conflicts to "human review" (by end-user themelves maybe?) if there are a lot of emails sent/received for a particular tricky name. Otherwise, for num=1 just auto-merge to make things easier
+You can further improve by sucking in a history of emails and calculating # of emails that were sent/received by particular addresses
+and possibly elevate potential conflicts to "human review" (by end-user themelves maybe?) if there are a lot of emails sent/received
+for a particular tricky name. Otherwise, for num=1 just auto-merge to make things easier
