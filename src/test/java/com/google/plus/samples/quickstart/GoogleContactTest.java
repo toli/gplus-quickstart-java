@@ -4,6 +4,7 @@ import com.google.gdata.data.contacts.ContactEntry;
 import com.google.gdata.data.extensions.Email;
 import com.google.gdata.data.extensions.FullName;
 import com.google.gdata.data.extensions.Name;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -18,6 +19,10 @@ import static org.junit.Assert.assertEquals;
 
 
 public class GoogleContactTest {
+    @BeforeClass
+    public static void beforeClass() {
+        Signin.loadSpringContext();
+    }
 
     @Test
     public void testMerge() throws Exception {
@@ -50,9 +55,21 @@ public class GoogleContactTest {
         contact = new GoogleContact(createEntry("vasya pupkin", Arrays.asList("4zjqf-3392859377@sale.craigslist.org", "vasya@pupkin.com")));
         assertEquals("only 1 email", 1, contact.getEmails().size());
         assertEquals("vasya@pupkin.com", contact.getEmails().toArray(new String[1])[0]);
-
-
     }
+
+    @Test
+    /**
+     * Creates a contact without a name and merges it with a contact with a name and another email.
+     * Verify we update the mergedNames list
+     */
+    public void testGetMerged() throws Exception {
+        GoogleContact contact1 = new GoogleContact(createEntry(null, Arrays.asList("vasya@pupkin.com")));
+        GoogleContact contact2 = new GoogleContact(createEntry("vasya pupkin", Arrays.asList("head@pupkin.com")));
+        contact1.merge(contact2);
+        String[] mergedNames = GoogleContact.getMergedNames();
+        assertEquals("expecting size 1", 1, mergedNames.length);
+    }
+
     private ContactEntry createEntry(String inName, List<String> emails){
         ContactEntry entry = new ContactEntry();
         Name name = new Name();

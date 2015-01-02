@@ -110,7 +110,7 @@ public class Signin {
     public static void main(String[] args) throws Exception {
         PropertyConfigurator.configure("log4j.properties");
 
-        new ClassPathXmlApplicationContext("ignore-list.xml");
+        loadSpringContext();
 
         Server server = new Server(4567);
         ServletHandler servletHandler = new ServletHandler();
@@ -123,6 +123,10 @@ public class Signin {
         servletHandler.addServletWithMapping(MainServlet.class, "/");
         server.start();
         server.join();
+    }
+
+    protected static void loadSpringContext() {
+        new ClassPathXmlApplicationContext("ignore-list.xml");
     }
 
     /**
@@ -354,9 +358,11 @@ public class Signin {
             int totalContactsRead = 0;
             Map<String, GoogleContact> emailToPerson = new HashMap<String, GoogleContact>();
             Map<String, GoogleContact> fullNameToPerson = new HashMap<String, GoogleContact>();
+            Map<String, GoogleContact> phoneToPerson = new HashMap<String, GoogleContact>();
             Set<String> noNameSetOfEmails = new HashSet<String>();
             String ownerName = "[contacts owner]";
 
+            LOGGER.info("Connecting to Google to read contacts list, this may take a while");
             while (true) {
                 ContactFeed resultFeed = contactsService.getFeed(query, ContactFeed.class);
                 int numRead = resultFeed.getEntries().size();
@@ -392,6 +398,7 @@ public class Signin {
                         }
 
                         boolean merged = updateEmailToContactsMap(contact, emailToPerson);
+                        //merged |= updatePhoneToContactsMap(contact, phoneToPerson);
                         if (merged) {
                             noNameSetOfEmails.removeAll(contact.getEmails());
                             LOGGER.debug("Found a merge for " + contact.getEmails().toArray()[0] + ", removing from noName set");
@@ -411,7 +418,8 @@ public class Signin {
             System.out.println("emails with no names: " + noNameSetOfEmails.size());
             System.out.println("just names w/out emails: " + justNamesArr.length);
             System.out.println("Contacts with full name and emails: " + fullNameToPerson.size());
-            System.out.println("Merged contacts: " + Arrays.toString(GoogleContact.getMerged()));
+            System.out.println("Merged " + GoogleContact.getMergedNames().length + " contacts: "
+                    + Arrays.toString(GoogleContact.getMergedNames()));
 
             response.getWriter().print(GSON.toJson("Read total of " + totalContactsRead + " contacts\n"));
             File outfile = new File("deduped-output.html");
@@ -464,7 +472,8 @@ public class Signin {
                 for (String name : justNamesArr) {
                     FileUtils.write(outfile, name + "<br/>\n", true);
                 }
-                FileUtils.write(outfile, "<em>Merged contacts: " + Arrays.toString(GoogleContact.getMerged()) + "<br/>\n", true);
+                FileUtils.write(outfile, "<em>Merged " + GoogleContact.getMergedNames().length + " contacts: " +
+                        Arrays.toString(GoogleContact.getMergedNames()) + "<br/>\n", true);
                 FileUtils.write(outfile, "</body></html>\n", true);
 
             } catch (IOException ex) {
@@ -531,6 +540,11 @@ public class Signin {
                 }
             }
             return merged;
+        }
+
+        private static boolean updatePhoneToContactsMap(GoogleContact inContact, Map<String, GoogleContact> inMap) {
+            // implement me
+            return false;
         }
     }
 }
